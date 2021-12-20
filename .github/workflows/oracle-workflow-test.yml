@@ -1,10 +1,11 @@
-name: Build Oracle Connector
+name: Build and Test Oracle Connector
 
 on:
-  pull_request:
+  push:
     branches:
       - main
       - 1.*
+      - oracle-ci-test
     paths:
       - 'support/checkstyle/**'
       - 'debezium-api/**'
@@ -37,4 +38,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - name: Check changes in Debezium Connector Oracle LogMiner
-        run: mvn clean install -B -pl debezium-connector-oracle -am -Poracle,oracle-ci,-xstream-dependency -DskipITs=true -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dmaven.wagon.http.pool=false -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
+        env:
+          QUAY_IO_USERNAME: ${{ secrets.QUAY_IO_USERNAME }}
+          QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+        run: mvn clean install -B -pl debezium-connector-oracle -am -Poracle,infinispan-buffer,oracle-ci,oracle-docker -Ddocker.username="$QUAY_IO_USERNAME" -Ddocker.password="$QUAY_IO_PASSWORD" -Dformat.imports.goal=check -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dmaven.wagon.http.pool=false -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
